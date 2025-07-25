@@ -4,6 +4,10 @@ type ecdsa = [
   | `P256 of Mirage_crypto_ec.P256.Dsa.priv
   | `P384 of Mirage_crypto_ec.P384.Dsa.priv
   | `P521 of Mirage_crypto_ec.P521.Dsa.priv
+  | `P256K1 of Mirage_crypto_ec.P256k1.Dsa.priv
+  | `BrainpoolP256 of Mirage_crypto_ec.BrainpoolP256.Dsa.priv
+  | `BrainpoolP384 of Mirage_crypto_ec.BrainpoolP384.Dsa.priv
+  | `BrainpoolP512 of Mirage_crypto_ec.BrainpoolP512.Dsa.priv
 ]
 
 type t = [
@@ -18,6 +22,10 @@ let key_type = function
   | `P256 _ -> `P256
   | `P384 _ -> `P384
   | `P521 _ -> `P521
+  | `P256K1 _ -> `P256K1
+  | `BrainpoolP256 _ -> `BrainpoolP256
+  | `BrainpoolP384 _ -> `BrainpoolP384
+  | `BrainpoolP512 _ -> `BrainpoolP512
 
 let generate ?seed ?(bits = 4096) typ =
   let g = match seed with
@@ -30,6 +38,10 @@ let generate ?seed ?(bits = 4096) typ =
   | `P256 -> `P256 (fst (Mirage_crypto_ec.P256.Dsa.generate ?g ()))
   | `P384 -> `P384 (fst (Mirage_crypto_ec.P384.Dsa.generate ?g ()))
   | `P521 -> `P521 (fst (Mirage_crypto_ec.P521.Dsa.generate ?g ()))
+  | `P256K1 -> `P256K1 (fst (Mirage_crypto_ec.P256k1.Dsa.generate ?g ()))
+  | `BrainpoolP256 -> `BrainpoolP256 (fst (Mirage_crypto_ec.BrainpoolP256.Dsa.generate ?g ()))
+  | `BrainpoolP384 -> `BrainpoolP384 (fst (Mirage_crypto_ec.BrainpoolP384.Dsa.generate ?g ()))
+  | `BrainpoolP512 -> `BrainpoolP512 (fst (Mirage_crypto_ec.BrainpoolP512.Dsa.generate ?g ()))
 
 let of_octets data =
   let open Mirage_crypto_ec in
@@ -52,6 +64,18 @@ let of_octets data =
   | `P521 ->
     let* k = ec_err (P521.Dsa.priv_of_octets data) in
     Ok (`P521 k)
+  | `P256K1 ->
+    let* k = ec_err (P256k1.Dsa.priv_of_octets data) in
+    Ok (`P256K1 k)
+  | `BrainpoolP256 ->
+    let* k = ec_err (BrainpoolP256.Dsa.priv_of_octets data) in
+    Ok (`BrainpoolP256 k)
+  | `BrainpoolP384 ->
+    let* k = ec_err (BrainpoolP384.Dsa.priv_of_octets data) in
+    Ok (`BrainpoolP384 k)
+  | `BrainpoolP512 ->
+    let* k = ec_err (BrainpoolP512.Dsa.priv_of_octets data) in
+    Ok (`BrainpoolP512 k)
 
 let of_string ?seed_or_data ?bits typ data =
   match seed_or_data with
@@ -74,6 +98,10 @@ let public = function
   | `P256 priv -> `P256 (Mirage_crypto_ec.P256.Dsa.pub_of_priv priv)
   | `P384 priv -> `P384 (Mirage_crypto_ec.P384.Dsa.pub_of_priv priv)
   | `P521 priv -> `P521 (Mirage_crypto_ec.P521.Dsa.pub_of_priv priv)
+  | `P256K1 priv -> `P256K1 (Mirage_crypto_ec.P256k1.Dsa.pub_of_priv priv)
+  | `BrainpoolP256 priv -> `BrainpoolP256 (Mirage_crypto_ec.BrainpoolP256.Dsa.pub_of_priv priv)
+  | `BrainpoolP384 priv -> `BrainpoolP384 (Mirage_crypto_ec.BrainpoolP384.Dsa.pub_of_priv priv)
+  | `BrainpoolP512 priv -> `BrainpoolP512 (Mirage_crypto_ec.BrainpoolP512.Dsa.pub_of_priv priv)
 
 let sign hash ?scheme key data =
   let open Mirage_crypto_ec in
@@ -101,7 +129,11 @@ let sign hash ?scheme key data =
       Ok (ecdsa_to_str (match key with
           | `P256 key -> P256.Dsa.(sign ~key (Public_key.trunc byte_length d))
           | `P384 key -> P384.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `P521 key -> P521.Dsa.(sign ~key (Public_key.trunc byte_length d))))
+          | `P521 key -> P521.Dsa.(sign ~key (Public_key.trunc byte_length d))
+          | `P256K1 key -> P256k1.Dsa.(sign ~key (Public_key.trunc byte_length d))
+          | `BrainpoolP256 key -> BrainpoolP256.Dsa.(sign ~key (Public_key.trunc byte_length d))
+          | `BrainpoolP384 key -> BrainpoolP384.Dsa.(sign ~key (Public_key.trunc byte_length d))
+          | `BrainpoolP512 key -> BrainpoolP512.Dsa.(sign ~key (Public_key.trunc byte_length d))))
     | _ -> Error (`Msg "invalid key and signature scheme combination")
   with
   | Mirage_crypto_pk.Rsa.Insufficient_key ->
@@ -193,6 +225,10 @@ module Asn = struct
     | `SECP256R1 -> let* p = P256.Dsa.priv_of_octets priv in Ok (`P256 p)
     | `SECP384R1 -> let* p = P384.Dsa.priv_of_octets priv in Ok (`P384 p)
     | `SECP521R1 -> let* p = P521.Dsa.priv_of_octets priv in Ok (`P521 p)
+    | `SECP256K1 -> let* p = P256k1.Dsa.priv_of_octets priv in Ok (`P256K1 p)
+    | `BRAINPOOLP256R1 -> let* p = BrainpoolP256.Dsa.priv_of_octets priv in Ok (`BrainpoolP256 p)
+    | `BRAINPOOLP384R1 -> let* p = BrainpoolP384.Dsa.priv_of_octets priv in Ok (`BrainpoolP384 p)
+    | `BRAINPOOLP512R1 -> let* p = BrainpoolP512.Dsa.priv_of_octets priv in Ok (`BrainpoolP512 p)
 
   (* external use (result) *)
   let ec_priv_of_str =
@@ -238,6 +274,10 @@ module Asn = struct
       | `P256 pk -> EC_pub `SECP256R1, ec_to_str (P256.Dsa.priv_to_octets pk)
       | `P384 pk -> EC_pub `SECP384R1, ec_to_str (P384.Dsa.priv_to_octets pk)
       | `P521 pk -> EC_pub `SECP521R1, ec_to_str (P521.Dsa.priv_to_octets pk)
+      | `P256K1 pk -> EC_pub `SECP256K1, ec_to_str (P256k1.Dsa.priv_to_octets pk)
+      | `BrainpoolP256 pk -> EC_pub `BRAINPOOLP256R1, ec_to_str (BrainpoolP256.Dsa.priv_to_octets pk)
+      | `BrainpoolP384 pk -> EC_pub `BRAINPOOLP384R1, ec_to_str (BrainpoolP384.Dsa.priv_to_octets pk)
+      | `BrainpoolP512 pk -> EC_pub `BRAINPOOLP512R1, ec_to_str (BrainpoolP512.Dsa.priv_to_octets pk)
     in
     (0, alg, cs)
 

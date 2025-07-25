@@ -4,6 +4,10 @@ type ecdsa = [
   | `P256 of Mirage_crypto_ec.P256.Dsa.pub
   | `P384 of Mirage_crypto_ec.P384.Dsa.pub
   | `P521 of Mirage_crypto_ec.P521.Dsa.pub
+  | `P256K1 of Mirage_crypto_ec.P256k1.Dsa.pub
+  | `BrainpoolP256 of Mirage_crypto_ec.BrainpoolP256.Dsa.pub
+  | `BrainpoolP384 of Mirage_crypto_ec.BrainpoolP384.Dsa.pub
+  | `BrainpoolP512 of Mirage_crypto_ec.BrainpoolP512.Dsa.pub
 ]
 
 type t = [
@@ -52,6 +56,10 @@ module Asn = struct
     | (EC_pub `SECP256R1, cs) -> `P256 (to_err (P256.Dsa.pub_of_octets cs))
     | (EC_pub `SECP384R1, cs) -> `P384 (to_err (P384.Dsa.pub_of_octets cs))
     | (EC_pub `SECP521R1, cs) -> `P521 (to_err (P521.Dsa.pub_of_octets cs))
+    | (EC_pub `SECP256K1, cs) -> `P256K1 (to_err (P256k1.Dsa.pub_of_octets cs))
+    | (EC_pub `BRAINPOOLP256R1, cs) -> `BrainpoolP256 (to_err (BrainpoolP256.Dsa.pub_of_octets cs))
+    | (EC_pub `BRAINPOOLP384R1, cs) -> `BrainpoolP384 (to_err (BrainpoolP384.Dsa.pub_of_octets cs))
+    | (EC_pub `BRAINPOOLP512R1, cs) -> `BrainpoolP512 (to_err (BrainpoolP512.Dsa.pub_of_octets cs))
     | _ -> parse_error "unknown public key algorithm"
 
   let unparse_pk =
@@ -63,6 +71,10 @@ module Asn = struct
     | `P256 pk -> (EC_pub `SECP256R1, P256.Dsa.pub_to_octets pk)
     | `P384 pk -> (EC_pub `SECP384R1, P384.Dsa.pub_to_octets pk)
     | `P521 pk -> (EC_pub `SECP521R1, P521.Dsa.pub_to_octets pk)
+    | `P256K1 pk -> (EC_pub `SECP256K1, P256k1.Dsa.pub_to_octets pk)
+    | `BrainpoolP256 pk -> (EC_pub `BRAINPOOLP256R1, BrainpoolP256.Dsa.pub_to_octets pk)
+    | `BrainpoolP384 pk -> (EC_pub `BRAINPOOLP384R1, BrainpoolP384.Dsa.pub_to_octets pk)
+    | `BrainpoolP512 pk -> (EC_pub `BRAINPOOLP512R1, BrainpoolP512.Dsa.pub_to_octets pk)
 
   let pk_info_der =
     map reparse_pk unparse_pk @@
@@ -81,6 +93,10 @@ let id k =
     | `P256 pk -> Mirage_crypto_ec.P256.Dsa.pub_to_octets pk
     | `P384 pk -> Mirage_crypto_ec.P384.Dsa.pub_to_octets pk
     | `P521 pk -> Mirage_crypto_ec.P521.Dsa.pub_to_octets pk
+    | `P256K1 pk -> Mirage_crypto_ec.P256k1.Dsa.pub_to_octets pk
+    | `BrainpoolP256 pk -> Mirage_crypto_ec.BrainpoolP256.Dsa.pub_to_octets pk
+    | `BrainpoolP384 pk -> Mirage_crypto_ec.BrainpoolP384.Dsa.pub_to_octets pk
+    | `BrainpoolP512 pk -> Mirage_crypto_ec.BrainpoolP512.Dsa.pub_to_octets pk
   in
   Digestif.(to_raw_string SHA1 (digest_string SHA1 data))
 
@@ -94,6 +110,10 @@ let key_type = function
   | `P256 _ -> `P256
   | `P384 _ -> `P384
   | `P521 _ -> `P521
+  | `P256K1 _ -> `P256K1
+  | `BrainpoolP256 _ -> `BrainpoolP256
+  | `BrainpoolP384 _ -> `BrainpoolP384
+  | `BrainpoolP512 _ -> `BrainpoolP512
 
 let sig_alg = function
   | #ecdsa -> `ECDSA
@@ -149,7 +169,11 @@ let verify hash ?scheme ~signature key data =
       (match key with
        | `P256 key -> P256.Dsa.verify ~key s (trunc P256.Dsa.byte_length d)
        | `P384 key -> P384.Dsa.verify ~key s (trunc P384.Dsa.byte_length d)
-       | `P521 key -> P521.Dsa.verify ~key s (trunc P521.Dsa.byte_length d))
+       | `P521 key -> P521.Dsa.verify ~key s (trunc P521.Dsa.byte_length d)
+       | `P256K1 key -> P256k1.Dsa.verify ~key s (trunc P256k1.Dsa.byte_length d)
+       | `BrainpoolP256 key -> BrainpoolP256.Dsa.verify ~key s (trunc BrainpoolP256.Dsa.byte_length d)
+       | `BrainpoolP384 key -> BrainpoolP384.Dsa.verify ~key s (trunc BrainpoolP384.Dsa.byte_length d)
+       | `BrainpoolP512 key -> BrainpoolP512.Dsa.verify ~key s (trunc BrainpoolP512.Dsa.byte_length d))
   | _ -> Error (`Msg "invalid key and signature scheme combination")
 
 let encode_der = Asn.pub_info_to_octets
