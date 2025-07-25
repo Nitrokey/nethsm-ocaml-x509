@@ -12,12 +12,16 @@ open Asn_grammars
  *)
 
 type ec_curve =
-  [ `SECP256R1 | `SECP384R1 | `SECP521R1 ]
+  [ `SECP256R1 | `SECP384R1 | `SECP521R1 | `SECP256K1 | `BRAINPOOLP256R1 | `BRAINPOOLP384R1 | `BRAINPOOLP512R1 ]
 
 let ec_curve_to_string = function
   | `SECP256R1 -> "SECP256R1"
   | `SECP384R1 -> "SECP384R1"
   | `SECP521R1 -> "SECP521R1"
+  | `SECP256K1 -> "SECP256K1"
+  | `BRAINPOOLP256R1 -> "BRAINPOOLP256R1"
+  | `BRAINPOOLP384R1 -> "BRAINPOOLP384R1"
+  | `BRAINPOOLP512R1 -> "BRAINPOOLP512R1"
 
 type t =
 
@@ -205,11 +209,19 @@ let curve_of_oid, curve_to_oid =
      (secp256r1, `SECP256R1) ;
      (secp384r1, `SECP384R1) ;
      (secp521r1, `SECP521R1) ;
+     (secp256k1, `SECP256K1) ;
+     (brainpoolP256r1, `BRAINPOOLP256R1) ;
+     (brainpoolP384r1, `BRAINPOOLP384R1) ;
+     (brainpoolP512r1, `BRAINPOOLP512R1) ;
    ]),
   (function
     | `SECP256R1 -> secp256r1
     | `SECP384R1 -> secp384r1
-    | `SECP521R1 -> secp521r1)
+    | `SECP521R1 -> secp521r1
+    | `SECP256K1 -> secp256k1
+    | `BRAINPOOLP256R1 -> brainpoolP256r1
+    | `BRAINPOOLP384R1 -> brainpoolP384r1
+    | `BRAINPOOLP512R1 -> brainpoolP512r1)
 
 let identifier =
   let open Registry in

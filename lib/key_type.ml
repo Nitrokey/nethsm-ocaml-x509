@@ -1,8 +1,10 @@
-type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521  ]
+type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521 | `P256K1 | `BrainpoolP256 | `BrainpoolP384 | `BrainpoolP512 ]
 
 let strings =
   [ ("rsa", `RSA) ; ("ed25519", `ED25519) ;
-    ("p256", `P256) ; ("p384", `P384) ; ("p521", `P521) ]
+    ("p256", `P256) ; ("p384", `P384) ; ("p521", `P521) ;
+    ("p256k1", `P256K1) ; ("secp256k1", `P256K1) ;
+    ("brainpoolp256r1", `BrainpoolP256) ; ("brainpoolp384r1", `BrainpoolP384) ; ("brainpoolp512r1", `BrainpoolP512) ]
 
 let to_string kt = fst (List.find (fun (_, k) -> kt = k) strings)
 
@@ -29,7 +31,7 @@ let supports_signature_scheme key_typ scheme =
   match key_typ, scheme with
   | `RSA, (`RSA_PSS | `RSA_PKCS1) -> true
   | `ED25519, `ED25519 -> true
-  | (`P256 | `P384 | `P521), `ECDSA -> true
+  | (`P256 | `P384 | `P521 | `P256K1 | `BrainpoolP256 | `BrainpoolP384 | `BrainpoolP512), `ECDSA -> true
   | _ -> false
 
 let opt_signature_scheme ?scheme kt =
@@ -38,7 +40,7 @@ let opt_signature_scheme ?scheme kt =
   | None -> match kt with
     | `RSA -> `RSA_PSS
     | `ED25519 -> `ED25519
-    | `P256 | `P384 | `P521 -> `ECDSA
+    | `P256 | `P384 | `P521 | `P256K1 | `BrainpoolP256 | `BrainpoolP384 | `BrainpoolP512 -> `ECDSA
 
 (* the default of RSA keys should be PSS, but most deployed certificates still
    use PKCS1 (and this library uses pkcs1 by default as well) *)

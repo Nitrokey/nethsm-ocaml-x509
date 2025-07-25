@@ -72,7 +72,7 @@ end
 (** Types of keys *)
 module Key_type : sig
   (** The polymorphic variant of key types. *)
-  type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521 ]
+  type t = [ `RSA | `ED25519 | `P256 | `P384 | `P521 | `P256K1 | `BrainpoolP256 | `BrainpoolP384 | `BrainpoolP512 ]
 
   val strings : (string * t) list
   (** [strings] is an associative list of string and key_type pairs. Useful for
@@ -115,6 +115,10 @@ module Public_key : sig
     | `P256 of Mirage_crypto_ec.P256.Dsa.pub
     | `P384 of Mirage_crypto_ec.P384.Dsa.pub
     | `P521 of Mirage_crypto_ec.P521.Dsa.pub
+    | `P256K1 of Mirage_crypto_ec.P256k1.Dsa.pub
+    | `BrainpoolP256 of Mirage_crypto_ec.BrainpoolP256.Dsa.pub
+    | `BrainpoolP384 of Mirage_crypto_ec.BrainpoolP384.Dsa.pub
+    | `BrainpoolP512 of Mirage_crypto_ec.BrainpoolP512.Dsa.pub
   ]
 
   (** {1 Operations on public keys} *)
@@ -179,6 +183,10 @@ module Private_key : sig
     | `P256 of Mirage_crypto_ec.P256.Dsa.priv
     | `P384 of Mirage_crypto_ec.P384.Dsa.priv
     | `P521 of Mirage_crypto_ec.P521.Dsa.priv
+    | `P256K1 of Mirage_crypto_ec.P256k1.Dsa.priv
+    | `BrainpoolP256 of Mirage_crypto_ec.BrainpoolP256.Dsa.priv
+    | `BrainpoolP384 of Mirage_crypto_ec.BrainpoolP384.Dsa.priv
+    | `BrainpoolP512 of Mirage_crypto_ec.BrainpoolP512.Dsa.priv
   ]
 
   (** {1 Constructing private keys} *)

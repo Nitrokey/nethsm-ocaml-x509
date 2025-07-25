@@ -33,6 +33,10 @@ let ec_data = [
   `P256, "arvDmHpdTdzbc0uo+KCXoArmrmAs2GAvfk14D8gi6gM=" ;
   `P384, "UEZz/xVx2f3s7W8/cFy/w38LkjAq0xfMYJiXamdwgW9zwSK18+vrhKzgE23sFnyq" ;
   `P521, "AVb4DIpMO5hzyfX1n4qi4xtj/JBDCTCwyOLasKnnVS6FHW2hEZbGwd1c2J4rwpNKZqTKNsKu3dVJAmlp3EFhqv5T" ;
+  `P256K1, "r7c6teVRVw1OpWUM/xOx8D35Uiu9N9G2kEE54tPJRKw=" ;
+  `BrainpoolP256, "EwzWx38kl147Bi6yKer3sk8f1jMWOeCdgpd69QePBy0=" ;
+  `BrainpoolP384, "HComUhVG3jAHytfnHeIaoxV3ZMj5zHcLua8Z9pREnGNNlxtkgifHVXMRCa0wgWOh" ;
+  `BrainpoolP512, "CBRJFGHzV5TFOcXZvSrEXzfZp92sPUJi7Fb/Tgpv/QRdV72UYV8lUJ5WUv0uofVpumS3yA/2LrgJtanyN81cnw==" ;
 ]
 
 let tests =

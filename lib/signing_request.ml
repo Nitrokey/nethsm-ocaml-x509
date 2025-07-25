@@ -167,6 +167,10 @@ let digest_of_key = function
   | `P256 _ -> `SHA256
   | `P384 _ -> `SHA384
   | `P521 _ -> `SHA512
+  | `P256K1 _ -> `SHA256
+  | `BrainpoolP256 _ -> `SHA256
+  | `BrainpoolP384 _ -> `SHA384
+  | `BrainpoolP512 _ -> `SHA512
 
 let default_digest digest key =
   match digest with None -> digest_of_key key | Some x -> x
