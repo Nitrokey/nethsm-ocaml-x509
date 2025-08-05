@@ -103,7 +103,7 @@ let public = function
   | `BrainpoolP384 priv -> `BrainpoolP384 (Mirage_crypto_ec.BrainpoolP384.Dsa.pub_of_priv priv)
   | `BrainpoolP512 priv -> `BrainpoolP512 (Mirage_crypto_ec.BrainpoolP512.Dsa.pub_of_priv priv)
 
-let sign hash ?scheme key data =
+let sign hash ?(rand_k=false) ?scheme key data =
   let open Mirage_crypto_ec in
   let hashed () = Public_key.hashed hash data
   and ecdsa_to_str s = Algorithm.ecdsa_sig_to_octets s
@@ -125,15 +125,44 @@ let sign hash ?scheme key data =
         | `Digest _ -> Error (`Msg "Ed25519 only suitable with raw message")
       end
     | #ecdsa as key, `ECDSA ->
-      let* d = hashed () in
-      Ok (ecdsa_to_str (match key with
-          | `P256 key -> P256.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `P384 key -> P384.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `P521 key -> P521.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `P256K1 key -> P256k1.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `BrainpoolP256 key -> BrainpoolP256.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `BrainpoolP384 key -> BrainpoolP384.Dsa.(sign ~key (Public_key.trunc byte_length d))
-          | `BrainpoolP512 key -> BrainpoolP512.Dsa.(sign ~key (Public_key.trunc byte_length d))))
+      let* data = hashed () in
+      let sign_ecdsa ~sign ~bit_length =
+        let byte_length = (bit_length + 7) / 8 in
+        let mask = (1 lsl (bit_length mod 8)) - 1 in
+        let gen_k () =
+          let buf = Bytes.create byte_length in
+          Mirage_crypto_rng.generate_into buf byte_length;
+          if mask > 0 then Bytes.set_uint8 buf 0 ((Bytes.get_uint8 buf 0) land mask);
+          Bytes.unsafe_to_string buf
+        in
+        fun key data ->
+          let data = if String.length data > byte_length then
+            String.sub data 0 byte_length
+          else
+            data
+          in
+          let rec go () =
+            let k = match rand_k with
+              | false -> None
+              | true -> Some (gen_k ())
+            in
+            try
+              Ok (sign ?mask:None ~key ?k data)
+            with
+            | Invalid_argument _ -> go ()
+            | Mirage_crypto_ec.Message_too_long ->
+                Error (`Msg "data too long")
+          in
+          go ()
+      in
+      Result.map ecdsa_to_str (match key with
+          | `P256 key -> P256.Dsa.(sign_ecdsa ~sign ~bit_length) key data
+          | `P384 key -> P384.Dsa.(sign_ecdsa ~sign ~bit_length) key data
+          | `P521 key -> P521.Dsa.(sign_ecdsa ~sign ~bit_length) key data
+          | `P256K1 key -> P256k1.Dsa.(sign_ecdsa ~sign ~bit_length) key data
+          | `BrainpoolP256 key -> BrainpoolP256.Dsa.(sign_ecdsa ~sign ~bit_length) key data
+          | `BrainpoolP384 key -> BrainpoolP384.Dsa.(sign_ecdsa ~sign ~bit_length) key data
+          | `BrainpoolP512 key -> BrainpoolP512.Dsa.(sign_ecdsa ~sign ~bit_length) key data)
     | _ -> Error (`Msg "invalid key and signature scheme combination")
   with
   | Mirage_crypto_pk.Rsa.Insufficient_key ->

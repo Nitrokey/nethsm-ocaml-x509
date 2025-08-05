@@ -224,6 +224,7 @@ module Private_key : sig
       the signature. The [scheme] defaults to [`RSA_PSS] for RSA keys,
       [`ED25519] for ED25519, and [`ECDSA] for other EC keys. *)
   val sign : Digestif.hash' ->
+    ?rand_k:bool ->
     ?scheme:Key_type.signature_scheme ->
     t -> [ `Digest of string | `Message of string ] ->
     (string, [> `Msg of string ]) result
